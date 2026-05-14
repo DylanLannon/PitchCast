@@ -1,17 +1,50 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { Text } from "react-native";
+import { Text, ActivityIndicator, View } from "react-native";
+import { useEffect, useState } from "react";
+import { Session } from "@supabase/supabase-js";
 import HomeScreen from "./screens/HomeScreen";
 import MarketsScreen from "./screens/MarketsScreen";
 import AlertsScreen from "./screens/AlertsScreen";
 import SettingsScreen from "./screens/SettingsScreen";
 import ForecastScreen from "./screens/ForecastScreen";
+import LoginScreen from "./screens/LoginScreen";
 import { COLORS } from "./constants/colors";
+import { supabase } from "./services/supabase";
 
 const Tab = createBottomTabNavigator();
 
 export default function App() {
+  const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setLoading(false);
+    });
+    supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+      </View>
+    );
+  }
+
+  if (!session) {
+    return (
+      <SafeAreaProvider>
+        <LoginScreen />
+      </SafeAreaProvider>
+    );
+  }
+
   return (
     <SafeAreaProvider>
       <NavigationContainer>
