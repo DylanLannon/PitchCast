@@ -3,6 +3,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Text } from "react-native";
 import HomeScreen from "./screens/HomeScreen";
+import MarketsScreen from "./screens/MarketsScreen";
 import { COLORS } from "./constants/colors";
 
 const Tab = createBottomTabNavigator();
@@ -32,6 +33,14 @@ export default function App() {
             options={{
               tabBarIcon: ({ color }) => <Text style={{ fontSize: 22, color }}>🏠</Text>,
               tabBarLabel: "Home",
+            }}
+          />
+          <Tab.Screen
+            name="Markets"
+            component={MarketsScreen}
+            options={{
+              tabBarIcon: ({ color }) => <Text style={{ fontSize: 22, color }}>🏪</Text>,
+              tabBarLabel: "Markets",
             }}
           />
         </Tab.Navigator>
