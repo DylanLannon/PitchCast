@@ -3,6 +3,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useEffect, useState } from "react";
 import { COLORS, FONTS } from "../constants/colors";
 import { getCurrentWeather, assessRisk, WeatherData, RiskAssessment } from "../services/weather";
+import WeatherCard from "../components/WeatherCard";
 
 const STOKESLEY = { lat: 54.4618, lon: -1.3318 };
 
@@ -100,6 +101,8 @@ export default function HomeScreen() {
                 <Text style={styles.statLabel}>Cloud</Text>
               </View>
             </View>
+
+            <WeatherCard weather={weather} risk={risk} />
 
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Conditions</Text>
