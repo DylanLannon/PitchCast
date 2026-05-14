@@ -6,6 +6,7 @@ import HomeScreen from "./screens/HomeScreen";
 import MarketsScreen from "./screens/MarketsScreen";
 import AlertsScreen from "./screens/AlertsScreen";
 import SettingsScreen from "./screens/SettingsScreen";
+import ForecastScreen from "./screens/ForecastScreen";
 import { COLORS } from "./constants/colors";
 
 const Tab = createBottomTabNavigator();
@@ -35,6 +36,14 @@ export default function App() {
             options={{
               tabBarIcon: ({ color }) => <Text style={{ fontSize: 22, color }}>🏠</Text>,
               tabBarLabel: "Home",
+            }}
+          />
+          <Tab.Screen
+            name="Forecast"
+            component={ForecastScreen}
+            options={{
+              tabBarIcon: ({ color }) => <Text style={{ fontSize: 22, color }}>📅</Text>,
+              tabBarLabel: "Forecast",
             }}
           />
           <Tab.Screen
