@@ -5,6 +5,7 @@ import { Text } from "react-native";
 import HomeScreen from "./screens/HomeScreen";
 import MarketsScreen from "./screens/MarketsScreen";
 import AlertsScreen from "./screens/AlertsScreen";
+import SettingsScreen from "./screens/SettingsScreen";
 import { COLORS } from "./constants/colors";
 
 const Tab = createBottomTabNavigator();
@@ -50,6 +51,14 @@ export default function App() {
             options={{
               tabBarIcon: ({ color }) => <Text style={{ fontSize: 22, color }}>🔔</Text>,
               tabBarLabel: "Alerts",
+            }}
+          />
+          <Tab.Screen
+            name="Settings"
+            component={SettingsScreen}
+            options={{
+              tabBarIcon: ({ color }) => <Text style={{ fontSize: 22, color }}>⚙️</Text>,
+              tabBarLabel: "Settings",
             }}
           />
         </Tab.Navigator>
