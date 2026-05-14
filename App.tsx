@@ -4,6 +4,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Text } from "react-native";
 import HomeScreen from "./screens/HomeScreen";
 import MarketsScreen from "./screens/MarketsScreen";
+import AlertsScreen from "./screens/AlertsScreen";
 import { COLORS } from "./constants/colors";
 
 const Tab = createBottomTabNavigator();
@@ -41,6 +42,14 @@ export default function App() {
             options={{
               tabBarIcon: ({ color }) => <Text style={{ fontSize: 22, color }}>🏪</Text>,
               tabBarLabel: "Markets",
+            }}
+          />
+          <Tab.Screen
+            name="Alerts"
+            component={AlertsScreen}
+            options={{
+              tabBarIcon: ({ color }) => <Text style={{ fontSize: 22, color }}>🔔</Text>,
+              tabBarLabel: "Alerts",
             }}
           />
         </Tab.Navigator>
