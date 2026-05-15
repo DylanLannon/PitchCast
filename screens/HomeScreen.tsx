@@ -22,6 +22,7 @@ export default function HomeScreen() {
   const [risk, setRisk] = useState<RiskAssessment | null>(null);
   const [markets, setMarkets] = useState<Market[]>([]);
   const [primaryMarket, setPrimaryMarket] = useState<Market | null>(null);
+  const [businessName, setBusinessName] = useState("PitchCast");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -30,6 +31,12 @@ export default function HomeScreen() {
 
   const loadData = async () => {
     setLoading(true);
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user?.user_metadata?.business_name) {
+      setBusinessName(user.user_metadata.business_name);
+    }
+
     const { data } = await supabase.from("markets").select("*").order("created_at", { ascending: true });
     if (data && data.length > 0) {
       setMarkets(data);
@@ -81,7 +88,7 @@ export default function HomeScreen() {
         <View style={styles.header}>
           <View>
             <Text style={styles.greeting}>{getGreeting()}</Text>
-            <Text style={styles.business}>PitchCast</Text>
+            <Text style={styles.business}>{businessName}</Text>
           </View>
           <Text style={styles.logo}>⛅</Text>
         </View>
@@ -139,14 +146,16 @@ export default function HomeScreen() {
             {markets.map((market, i) => (
               <TouchableOpacity key={market.id} style={styles.marketCard} onPress={() => {
                 setPrimaryMarket(market);
-                getCurrentWeather(market.lat, market.lon).then(w => { setWeather(w); setRisk(assessRisk(w)); }).catch(() => {});
+                getCurrentWeather(market.lat, market.lon)
+                  .then(w => { setWeather(w); setRisk(assessRisk(w)); })
+                  .catch(() => {});
               }}>
                 <View>
                   <Text style={styles.marketName}>{market.name}</Text>
                   <Text style={styles.marketDay}>{market.trading_days.join(", ")}</Text>
                 </View>
-                <Text style={[styles.marketRisk, { color: i === 0 ? risk?.color : COLORS.gray400 }]}>
-                  {i === 0 ? risk?.emoji + " " + risk?.level : "Tap to check"}
+                <Text style={[styles.marketRisk, { color: primaryMarket?.id === market.id ? risk?.color : COLORS.gray400 }]}>
+                  {primaryMarket?.id === market.id ? risk?.emoji + " " + risk?.level : "Tap to check"}
                 </Text>
               </TouchableOpacity>
             ))}

@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Modal } from "react-native";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Modal, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useEffect, useState } from "react";
 import { COLORS, FONTS } from "../constants/colors";
@@ -30,6 +30,24 @@ export default function MarketsScreen() {
     const { data, error } = await supabase.from("markets").select("*").order("created_at", { ascending: false });
     if (!error && data) setMarkets(data);
     setLoading(false);
+  };
+
+  const deleteMarket = async (id: string, name: string) => {
+    Alert.alert(
+      "Delete Market",
+      `Remove ${name} from your markets?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            await supabase.from("markets").delete().eq("id", id);
+            fetchMarkets();
+          }
+        }
+      ]
+    );
   };
 
   return (
@@ -76,6 +94,12 @@ export default function MarketsScreen() {
                       <Text style={styles.prepaidText}>💳 Pre-paid</Text>
                     </View>
                   )}
+                  <TouchableOpacity
+                    style={styles.deleteBtn}
+                    onPress={() => deleteMarket(market.id, market.name)}
+                  >
+                    <Text style={styles.deleteBtnText}>Remove</Text>
+                  </TouchableOpacity>
                 </View>
               </View>
             </View>
@@ -102,6 +126,8 @@ const styles = StyleSheet.create({
   productType: { fontSize: FONTS.size.xs, color: COLORS.primary, fontWeight: "600", backgroundColor: COLORS.primaryBg, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
   prepaidBadge: { backgroundColor: COLORS.gray100, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
   prepaidText: { fontSize: FONTS.size.xs, color: COLORS.gray600 },
+  deleteBtn: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: COLORS.danger },
+  deleteBtnText: { fontSize: FONTS.size.xs, color: COLORS.danger, fontWeight: "600" },
   empty: { alignItems: "center", padding: 40 },
   emptyEmoji: { fontSize: 48, marginBottom: 16 },
   emptyTitle: { fontSize: FONTS.size.xl, fontWeight: "700", color: COLORS.text, marginBottom: 8 },
