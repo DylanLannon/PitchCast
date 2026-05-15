@@ -4,39 +4,57 @@ import { useEffect, useState } from "react";
 import { COLORS, FONTS } from "../constants/colors";
 import { getCurrentWeather, assessRisk, WeatherData, RiskAssessment } from "../services/weather";
 import WeatherCard from "../components/WeatherCard";
+import { supabase } from "../services/supabase";
 
-const STOKESLEY = { lat: 54.4618, lon: -1.3318 };
+interface Market {
+  id: string;
+  name: string;
+  location: string;
+  lat: number;
+  lon: number;
+  trading_days: string[];
+  product_type: string;
+  pitch_prepaid: boolean;
+}
 
 export default function HomeScreen() {
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [risk, setRisk] = useState<RiskAssessment | null>(null);
+  const [markets, setMarkets] = useState<Market[]>([]);
+  const [primaryMarket, setPrimaryMarket] = useState<Market | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchWeather();
+    loadData();
   }, []);
 
-  const fetchWeather = async () => {
-    try {
-      setLoading(true);
-      const data = await getCurrentWeather(STOKESLEY.lat, STOKESLEY.lon);
-      setWeather(data);
-      setRisk(assessRisk(data));
-    } catch (e) {
-      const mockWeather: WeatherData = {
-        temp: 14,
-        windSpeed: 12,
-        windDeg: 180,
-        description: "partly cloudy",
-        icon: "02d",
-        rainChance: 30,
-        humidity: 65,
-      };
-      setWeather(mockWeather);
-      setRisk(assessRisk(mockWeather));
-    } finally {
-      setLoading(false);
+  const loadData = async () => {
+    setLoading(true);
+    const { data } = await supabase.from("markets").select("*").order("created_at", { ascending: true });
+    if (data && data.length > 0) {
+      setMarkets(data);
+      setPrimaryMarket(data[0]);
+      try {
+        const weatherData = await getCurrentWeather(data[0].lat, data[0].lon);
+        setWeather(weatherData);
+        setRisk(assessRisk(weatherData));
+      } catch {
+        const mock: WeatherData = { temp: 14, windSpeed: 12, windDeg: 180, description: "partly cloudy", icon: "02d", rainChance: 30, humidity: 65 };
+        setWeather(mock);
+        setRisk(assessRisk(mock));
+      }
+    } else {
+      try {
+        const weatherData = await getCurrentWeather(54.4618, -1.3318);
+        setWeather(weatherData);
+        setRisk(assessRisk(weatherData));
+      } catch {
+        const mock: WeatherData = { temp: 14, windSpeed: 12, windDeg: 180, description: "partly cloudy", icon: "02d", rainChance: 30, humidity: 65 };
+        setWeather(mock);
+        setRisk(assessRisk(mock));
+      }
     }
+    setLoading(false);
   };
 
   const getGreeting = () => {
@@ -51,7 +69,7 @@ export default function HomeScreen() {
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={COLORS.primary} />
-          <Text style={styles.loadingText}>Fetching weather...</Text>
+          <Text style={styles.loadingText}>Loading your dashboard...</Text>
         </View>
       </SafeAreaView>
     );
@@ -63,7 +81,7 @@ export default function HomeScreen() {
         <View style={styles.header}>
           <View>
             <Text style={styles.greeting}>{getGreeting()}</Text>
-            <Text style={styles.business}>Butterfold Bakery</Text>
+            <Text style={styles.business}>PitchCast</Text>
           </View>
           <Text style={styles.logo}>⛅</Text>
         </View>
@@ -72,7 +90,7 @@ export default function HomeScreen() {
           <>
             <View style={[styles.alertCard, { backgroundColor: risk.color }]}>
               <Text style={styles.alertTitle}>Today's Forecast</Text>
-              <Text style={styles.alertLocation}>📍 Stokesley Market</Text>
+              <Text style={styles.alertLocation}>📍 {primaryMarket ? primaryMarket.name : "Your location"}</Text>
               <View style={styles.alertBadge}>
                 <Text style={styles.alertBadgeText}>{risk.emoji} {risk.level.charAt(0).toUpperCase() + risk.level.slice(1)} Risk</Text>
               </View>
@@ -115,21 +133,34 @@ export default function HomeScreen() {
           </>
         )}
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Your Markets This Week</Text>
-          {[
-            { name: "Stokesley Market", day: "Saturday", risk: risk?.emoji + " " + risk?.level, color: risk?.color },
-            { name: "Crathorne Hall", day: "Sunday", risk: "✅ Good", color: COLORS.success },
-          ].map((market, i) => (
-            <TouchableOpacity key={i} style={styles.marketCard}>
-              <View>
-                <Text style={styles.marketName}>{market.name}</Text>
-                <Text style={styles.marketDay}>{market.day}</Text>
-              </View>
-              <Text style={[styles.marketRisk, { color: market.color }]}>{market.risk}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+        {markets.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Your Markets</Text>
+            {markets.map((market, i) => (
+              <TouchableOpacity key={market.id} style={styles.marketCard} onPress={() => {
+                setPrimaryMarket(market);
+                getCurrentWeather(market.lat, market.lon).then(w => { setWeather(w); setRisk(assessRisk(w)); }).catch(() => {});
+              }}>
+                <View>
+                  <Text style={styles.marketName}>{market.name}</Text>
+                  <Text style={styles.marketDay}>{market.trading_days.join(", ")}</Text>
+                </View>
+                <Text style={[styles.marketRisk, { color: i === 0 ? risk?.color : COLORS.gray400 }]}>
+                  {i === 0 ? risk?.emoji + " " + risk?.level : "Tap to check"}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+
+        {markets.length === 0 && (
+          <View style={styles.section}>
+            <View style={styles.noMarketsCard}>
+              <Text style={styles.noMarketsEmoji}>🏪</Text>
+              <Text style={styles.noMarketsText}>Add your first market to get personalised alerts</Text>
+            </View>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -162,4 +193,7 @@ const styles = StyleSheet.create({
   marketName: { fontSize: FONTS.size.md, fontWeight: "600", color: COLORS.text },
   marketDay: { fontSize: FONTS.size.sm, color: COLORS.textMuted, marginTop: 2 },
   marketRisk: { fontSize: FONTS.size.sm, fontWeight: "600" },
+  noMarketsCard: { backgroundColor: COLORS.white, borderRadius: 12, padding: 24, alignItems: "center" },
+  noMarketsEmoji: { fontSize: 36, marginBottom: 8 },
+  noMarketsText: { fontSize: FONTS.size.md, color: COLORS.textMuted, textAlign: "center" },
 });
