@@ -10,6 +10,7 @@ import AlertsScreen from "./screens/AlertsScreen";
 import SettingsScreen from "./screens/SettingsScreen";
 import ForecastScreen from "./screens/ForecastScreen";
 import LoginScreen from "./screens/LoginScreen";
+import OnboardingScreen from "./screens/OnboardingScreen";
 import { COLORS } from "./constants/colors";
 import { supabase } from "./services/supabase";
 
@@ -18,16 +19,26 @@ const Tab = createBottomTabNavigator();
 export default function App() {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isNewUser, setIsNewUser] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
+      if (session) checkIfNewUser(session);
       setLoading(false);
     });
     supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      if (session) checkIfNewUser(session);
     });
   }, []);
+
+  const checkIfNewUser = async (session: Session) => {
+    const hasBusinessName = session.user.user_metadata?.business_name;
+    if (!hasBusinessName) {
+      setIsNewUser(true);
+    }
+  };
 
   if (loading) {
     return (
@@ -41,6 +52,14 @@ export default function App() {
     return (
       <SafeAreaProvider>
         <LoginScreen />
+      </SafeAreaProvider>
+    );
+  }
+
+  if (isNewUser) {
+    return (
+      <SafeAreaProvider>
+        <OnboardingScreen onComplete={() => setIsNewUser(false)} />
       </SafeAreaProvider>
     );
   }
