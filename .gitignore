@@ -40,5 +40,6 @@ yarn-error.*
 /ios
 /android
 
-# openweather API KEY
+# secrets
+.env
 constants/config.ts
