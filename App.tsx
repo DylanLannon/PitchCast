@@ -11,6 +11,7 @@ import SettingsScreen from "./screens/SettingsScreen";
 import ForecastScreen from "./screens/ForecastScreen";
 import LoginScreen from "./screens/LoginScreen";
 import OnboardingScreen from "./screens/OnboardingScreen";
+import SalesLogScreen from "./screens/SalesLogScreen";
 import { COLORS } from "./constants/colors";
 import { supabase } from "./services/supabase";
 
@@ -35,9 +36,7 @@ export default function App() {
 
   const checkIfNewUser = async (session: Session) => {
     const hasBusinessName = session.user.user_metadata?.business_name;
-    if (!hasBusinessName) {
-      setIsNewUser(true);
-    }
+    if (!hasBusinessName) setIsNewUser(true);
   };
 
   if (loading) {
@@ -112,6 +111,14 @@ export default function App() {
             options={{
               tabBarIcon: ({ color }) => <Text style={{ fontSize: 22, color }}>🔔</Text>,
               tabBarLabel: "Alerts",
+            }}
+          />
+          <Tab.Screen
+            name="Sales"
+            component={SalesLogScreen}
+            options={{
+              tabBarIcon: ({ color }) => <Text style={{ fontSize: 22, color }}>💷</Text>,
+              tabBarLabel: "Sales",
             }}
           />
           <Tab.Screen
