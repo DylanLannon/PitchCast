@@ -41,7 +41,7 @@ export async function getCurrentWeather(lat: number, lon: number): Promise<Weath
     windDeg: data.wind.deg,
     description: data.weather[0].description,
     icon: data.weather[0].icon,
-    rainChance: data.clouds?.all ?? 0,
+    rainChance: data.rain ? Math.round((data.rain["1h"] ?? 0) * 100) : 0,
     humidity: data.main.humidity,
   };
 }
@@ -94,6 +94,6 @@ export function assessRisk(weather: WeatherData): RiskAssessment {
     level: "low",
     emoji: "✅",
     color: "#22C55E",
-    message: "Great conditions. High footfall expected — make sure you have enough stock!",
+    message: "Great conditions. High footfall expected - make sure you have enough stock!",
   };
 }
